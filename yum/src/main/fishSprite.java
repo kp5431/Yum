@@ -42,8 +42,8 @@ public class fishSprite {
         if(color.equals("file:src\\main\\blue.png")){
             this.color="Blue";
         }
-        else if(color.equals("file:src\\main\\black.png")){
-            this.color="Black";
+        else if(color.equals("file:src\\main\\pink.png")){
+            this.color="Pink";
         }
         else if(color.equals("file:src\\main\\brown.png")){
             this.color="Brown";
@@ -91,17 +91,6 @@ public class fishSprite {
     {
         positionX += velocityX * time;
         positionY += velocityY * time;
-    }
-
-    public void isDead(String filename) {
-        if (getPositionX() > 960) {
-            setImage(filename);
-            setPosition(0, Math.random() * 400);
-            setVelocity(100 + Math.random() * 150, 0);
-
-        } else {
-            //do nothing
-        }
     }
 
     public void render(GraphicsContext gc)

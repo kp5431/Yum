@@ -20,13 +20,16 @@ import java.util.Iterator;
 
 public class Main extends Application {
     private int numScore=0;
+    private int numEnemies=10;
+    private float speed=1;
+    private ArrayList<fishSprite> enemies=new ArrayList<>();//enemy fish array
     private long lastNanoTime=System.nanoTime();
     private long Time = System.nanoTime();
 
     private final String background="file:src\\main\\background.jpg";
     private String eatColor="";
     private final String blueFish="file:src\\main\\blue.png";
-    private final String blackFish="file:src\\main\\black.png";
+    private final String pinkFish="file:src\\main\\pink.png";
     private final String brownFish="file:src\\main\\brown.png";
     private final String goldFish="file:src\\main\\gold.png";
 
@@ -38,6 +41,11 @@ public class Main extends Application {
         }
         return false;
     }
+    public void isDead(fishSprite fish) {
+        if (fish.getPositionX() > 960) {
+            enemies.remove(fish);
+        }
+    }
     public String random(int min, int max) {
         int range = Math.abs(max - min) + 1;
         int numColor = (int) (Math.random() * range) + (min <= max ? min : max);
@@ -46,7 +54,7 @@ public class Main extends Application {
             return this.blueFish;
         }
         else if (numColor == 2) {
-            return this.blackFish;
+            return this.pinkFish;
         }
         else if ((numColor2 == numColor)) {
             return this.goldFish;
@@ -62,7 +70,7 @@ public class Main extends Application {
         if (numColor == 1) {
             return "Blue";
         } else if (numColor == 2) {
-            return "Black";
+            return "Pink";
         } else{
             return "Brown";
         }
@@ -72,10 +80,10 @@ public class Main extends Application {
         enemyFish.setImage((random(1,3)));
         enemyFish.setPosition(0,Math.random()*400);
         if(enemyFish.getColor().equals("Gold")){
-            enemyFish.setVelocity(300+Math.random()*500,0);
+            enemyFish.setVelocity(speed*(300+Math.random()*500),0);
         }
         else {
-            enemyFish.setVelocity(100 + Math.random() * 150, 0);
+            enemyFish.setVelocity(speed*(100 + Math.random() * 150), 0);
             enemies.add(enemyFish);
         }
     }
@@ -99,7 +107,6 @@ public class Main extends Application {
         fishSprite playerFish=new fishSprite();
         playerFish.setPosition(400,450);
         playerFish.setImage("file:src\\main\\fish.png");
-        ArrayList<fishSprite> enemies=new ArrayList<>();//enemy fish array
 
         Text score= new Text("Score: "+numScore);
         score.setFont((Font.font("Verdana",15)));
@@ -107,7 +114,7 @@ public class Main extends Application {
         score.setX(25);
         score.setY(550);
 
-        Text eat= new Text("Eat this color: "+eatColor);
+        Text eat= new Text("Eat this fish: "+eatColor);
         eat.setFont((Font.font("Verdana",15)));
         eat.setFill(Color.BLACK);
         eat.setX(25);
@@ -116,11 +123,6 @@ public class Main extends Application {
         root.getChildren().add(score);
         root.getChildren().add(eat);
 
-
-
-        for(int i=0;i<10;i++){
-            createEnemy(enemies);
-        }
 
         ArrayList<String> input= new ArrayList<>();//list for keyboard input
 
@@ -155,6 +157,8 @@ public class Main extends Application {
                 //if time is greater than 10s, different eat color
                 if(checkTime()){
                     eatColor=randomEat(1,3);
+                    numEnemies+=2;
+                    speed+=.1;
                 }
                 lastNanoTime=currentNanoTime;
                 //move playerFish
@@ -173,46 +177,51 @@ public class Main extends Application {
                 if (input.contains("DOWN")) {
                     playerFish.addVelocity(0, 100);
                 }
-
-                playerFish.update(elapsedTime);
-
-                Iterator<fishSprite> enemyFishIter=enemies.iterator();
-                while(enemyFishIter.hasNext()){
-                    fishSprite enemy=enemyFishIter.next();
-                    if(enemy.getCollision()){
-                        enemy.setCollision(playerFish.intersects(enemy));
-                        continue;
-                    }
-                    if(playerFish.intersects(enemy)&&enemy.getColor().equals(eatColor)){
-                        numScore+=100;
-                        enemyFishIter.remove();
-                    }
-                    else if(playerFish.intersects(enemy)&&enemy.getColor().equals("Gold")){
-                        numScore+=500;
-                        enemyFishIter.remove();
-                    }
-                    else if(playerFish.intersects(enemy)&&!enemy.getColor().equals(eatColor)){
-                        enemy.setCollision(true);
-                        numScore-=100;
-                    }
-                    else{
-                        //do nothing
-                    }
-                }
                 //render
                 gc.clearRect(0, 0, 960,586);
                 gc.drawImage(backgroundi, 0, 0);
+                playerFish.update(elapsedTime);
                 playerFish.render(gc);
-                for(fishSprite fish:enemies){
-                    String filename=random(1,3);
-                    fish.isDead(filename);
-                    fish.update(elapsedTime);
-                    fish.render(gc);
 
+                Iterator<fishSprite> enemyFishIter=enemies.iterator();
+                while(enemyFishIter.hasNext()) {
+                    fishSprite enemy = enemyFishIter.next();
+                    if (enemy.getCollision()) {
+                        enemy.setCollision(playerFish.intersects(enemy));
+                        continue;
+                    }
+                    if (playerFish.intersects(enemy) && enemy.getColor().equals(eatColor)) {
+                        numScore += 100;
+                        enemyFishIter.remove();
+                    } else if (playerFish.intersects(enemy) && enemy.getColor().equals("Gold")) {
+                        numScore += 500;
+                        enemyFishIter.remove();
+                    } else if (playerFish.intersects(enemy) && !enemy.getColor().equals(eatColor)) {
+                        enemy.setCollision(true);
+                        numScore -= 100;
+
+                    } else {
+                        //do nothing
+                    }
                 }
-                if(enemies.size()<10){
-                    createEnemy(enemies);
-                }
+
+                //Iterator<fishSprite> enemyFishIter2=enemies.iterator();
+                //while(enemyFishIter2.hasNext()) {
+                  //  fishSprite enemy = enemyFishIter2.next();
+                    //isDead(enemy);
+                    //enemy.update(elapsedTime);
+                    //enemy.render(gc);
+
+               for(fishSprite enemy: enemies) {
+                   isDead(enemy);
+                   enemy.update(elapsedTime);
+                   enemy.render(gc);
+               }
+
+                    if (enemies.size() < numEnemies) {
+                        createEnemy(enemies);
+                    }
+
                 score.setText("Score: "+numScore);
                 eat.setText("Eat this color: "+eatColor);
             }
